@@ -1,77 +1,145 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>QR Code Ticket Scanner</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ticket Validator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
+      background: #f2f2f2;
+      margin: 0;
       padding: 20px;
     }
-    #result {
-      margin-top: 20px;
-      font-size: 18px;
+
+    .container {
+      max-width: 480px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .valid { color: green; }
-    .invalid { color: red; }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      margin-top: 10px;
+      display: block;
+      color: #555;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .response-box {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Validate Ticket</h2>
 
-  <h1>Scan Ticket QR Code</h1>
-  <div id="reader" style="width: 300px; margin: auto;"></div>
-  <div id="result"></div>
+    <label for="qr_data">QR Data:</label>
+    <textarea id="qr_data" rows="4" placeholder="Paste QR hash, base64, or full JSON here"></textarea>
+
+    <label for="scanner_id">Scanner ID (optional):</label>
+    <input type="text" id="scanner_id" placeholder="Device name or ID">
+
+    <button onclick="validateTicket()">Submit</button>
+
+    <div id="response" class="response-box" style="display:none;"></div>
+  </div>
 
   <script>
-    function sendToAPI(qrData) {
-      fetch('https://111011010010110111.pythonanywhere.com/validate-ticket', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          qr_data: qrData,
-          scanner_id: "scanner-001" // optional identifier
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        const resultEl = document.getElementById("result");
-        if (data.valid) {
-          resultEl.innerHTML = `<div class="valid">✅ Ticket valid for <strong>${data.event}</strong> - User: <strong>${data.user}</strong><br>Scanned at: ${data.scanned_at}</div>`;
-        } else {
-          resultEl.innerHTML = `<div class="invalid">❌ Invalid ticket: ${data.reason}</div>`;
-        }
-      })
-      .catch(error => {
-        document.getElementById("result").innerHTML = `<div class="invalid">Error: ${error}</div>`;
-      });
-    }
+    async function validateTicket() {
+      const qrData = document.getElementById("qr_data").value.trim();
+      const scannerId = document.getElementById("scanner_id").value.trim();
+      const responseBox = document.getElementById("response");
 
-    const html5QrCode = new Html5Qrcode("reader");
+      responseBox.style.display = "none";
+      responseBox.className = "response-box";
 
-    Html5Qrcode.getCameras().then(cameras => {
-      if (cameras && cameras.length) {
-        html5QrCode.start(
-          { facingMode: "environment" }, // Use rear camera if available
-          {
-            fps: 10,
-            qrbox: 250
-          },
-          qrCodeMessage => {
-            html5QrCode.stop(); // Stop scanning after first result
-            sendToAPI(qrCodeMessage); // Send data to backend
-          },
-          errorMessage => {
-            // Ignore scan errors
-          }
-        );
+      if (!qrData) {
+        responseBox.innerHTML = "Please enter QR data.";
+        responseBox.classList.add("error");
+        responseBox.style.display = "block";
+        return;
       }
-    }).catch(err => {
-      document.getElementById("result").innerText = `Camera error: ${err}`;
-    });
-  </script>
 
+      try {
+        const res = await fetch("https://111011010010110111.pythonanywhere.com/validate-ticket", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            qr_data: qrData,
+            scanner_id: scannerId
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.valid) {
+          responseBox.innerHTML = `
+            ✅ Ticket Valid!<br>
+            Event: <strong>${data.event}</strong><br>
+            User: <strong>${data.user}</strong><br>
+            Scanned At: <strong>${new Date(data.scanned_at).toLocaleString()}</strong><br>
+            Scanner ID: <strong>${data.scanner_id}</strong>
+          `;
+          responseBox.classList.add("success");
+        } else {
+          responseBox.innerHTML = `❌ Invalid Ticket: ${data.reason || "Unknown error"}`;
+          responseBox.classList.add("error");
+        }
+      } catch (err) {
+        responseBox.innerHTML = "❌ Network or server error. Please try again.";
+        responseBox.classList.add("error");
+      }
+
+      responseBox.style.display = "block";
+    }
+  </script>
 </body>
 </html>
