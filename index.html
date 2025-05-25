@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Evanda Tickets - Professional Scanner</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
       --primary: #4a36dc;
@@ -16,7 +16,7 @@
       --dark: #343a40;
       --gray: #6c757d;
     }
-    
+
     body {
       font-family: 'Montserrat', sans-serif;
       background-color: #f5f7fa;
@@ -24,7 +24,7 @@
       padding: 20px;
       color: var(--dark);
     }
-    
+
     .container {
       max-width: 800px;
       margin: 0 auto;
@@ -33,28 +33,23 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       padding: 30px;
     }
-    
+
     .header {
       text-align: center;
       margin-bottom: 30px;
     }
-    
-    .header img {
-      height: 50px;
-      margin-bottom: 15px;
-    }
-    
+
     .header h1 {
       color: var(--primary);
       margin: 0;
       font-size: 28px;
     }
-    
+
     .header p {
       color: var(--gray);
       margin: 5px 0 0;
     }
-    
+
     .scanner-controls {
       background: var(--light);
       padding: 20px;
@@ -62,18 +57,18 @@
       margin-bottom: 25px;
       text-align: center;
     }
-    
+
     .form-group {
       margin-bottom: 15px;
     }
-    
+
     label {
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
       color: var(--dark);
     }
-    
+
     input, button {
       padding: 12px 15px;
       font-size: 16px;
@@ -81,19 +76,19 @@
       border: 1px solid #ddd;
       transition: all 0.3s;
     }
-    
+
     input {
       width: 100%;
       max-width: 300px;
       box-sizing: border-box;
     }
-    
+
     input:focus {
       border-color: var(--primary);
       outline: none;
       box-shadow: 0 0 0 3px rgba(74, 54, 220, 0.2);
     }
-    
+
     button {
       background-color: var(--primary);
       color: white;
@@ -102,16 +97,16 @@
       font-weight: 600;
       min-width: 180px;
     }
-    
+
     button:hover {
       background-color: var(--primary-dark);
     }
-    
+
     button:disabled {
       background-color: var(--gray);
       cursor: not-allowed;
     }
-    
+
     #reader {
       width: 100%;
       max-width: 400px;
@@ -121,7 +116,7 @@
       overflow: hidden;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
-    
+
     #result {
       margin-top: 25px;
       padding: 20px;
@@ -134,30 +129,30 @@
       justify-content: center;
       align-items: center;
     }
-    
+
     .success {
       background-color: rgba(40, 167, 69, 0.1);
       border: 1px solid var(--success);
       color: var(--success);
     }
-    
+
     .error {
       background-color: rgba(220, 53, 69, 0.1);
       border: 1px solid var(--danger);
       color: var(--danger);
     }
-    
+
     .waiting {
       color: var(--gray);
     }
-    
+
     .scan-info {
       margin-top: 20px;
       font-size: 14px;
       color: var(--gray);
       text-align: center;
     }
-    
+
     .ticket-details {
       margin-top: 15px;
       text-align: left;
@@ -168,24 +163,24 @@
       max-width: 350px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
-    
+
     .ticket-details p {
       margin: 8px 0;
     }
-    
+
     .ticket-details strong {
       color: var(--dark);
     }
-    
+
     @media (max-width: 600px) {
       .container {
         padding: 20px;
       }
-      
+
       .header h1 {
         font-size: 24px;
       }
-      
+
       input, button {
         padding: 10px 12px;
       }
@@ -207,24 +202,28 @@
       <button onclick="startScanner()">Start Scanning</button>
     </div>
 
-    <div id="reader"></div>
-    
+    <div id="reader" onclick="tapToFocus()"></div>
+
     <div id="result" class="waiting">
       Ready to scan tickets
     </div>
-    
+
     <p class="scan-info">
-      Point the camera at the QR code to scan event tickets
+      Tap the camera view if scanning is blurry. Point the camera at a QR code.
     </p>
 
-    <!-- Success and error sounds -->
-    <audio id="success-sound" src="https://cdn.pixabay.com/download/audio/2021/09/20/audio_2fe7b4e03f.mp3?filename=correct-2-46134.mp3" preload="auto"></audio>
-    <audio id="error-sound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_65f747fcb3.mp3?filename=error-126627.mp3" preload="auto"></audio>
+    <audio id="success-sound" src="success.mp3" preload="auto"></audio>
+    <audio id="error-sound" src="error.mp3" preload="auto"></audio>
   </div>
 
   <script>
     let html5QrcodeScanner;
     let scannerIdGlobal = "";
+
+    function tapToFocus() {
+      alert("Trying to refocus the camera. If it remains blurry, adjust your lighting or tap again.");
+      // Some devices automatically handle autofocus
+    }
 
     async function startScanner() {
       scannerIdGlobal = document.getElementById("scanner-id").value.trim();
@@ -234,8 +233,9 @@
       }
 
       document.getElementById("reader").style.display = "block";
-      document.getElementById("result").className = "waiting";
-      document.getElementById("result").innerHTML = "Initializing scanner...";
+      const resultEl = document.getElementById("result");
+      resultEl.className = "waiting";
+      resultEl.innerHTML = "Initializing scanner...";
 
       try {
         if (!html5QrcodeScanner) {
@@ -247,15 +247,15 @@
           { fps: 10, qrbox: 250 },
           onScanSuccess,
           (error) => {
-            console.error("Scanner error:", error);
+            console.warn("QR Scan error:", error);
           }
         );
-        
-        document.getElementById("result").innerHTML = "Ready to scan tickets";
+
+        resultEl.innerHTML = "Ready to scan tickets";
       } catch (err) {
-        document.getElementById("result").className = "error";
-        document.getElementById("result").innerHTML = "Failed to initialize scanner. Please check camera permissions.";
-        console.error("Scanner initialization failed:", err);
+        resultEl.className = "error";
+        resultEl.innerHTML = "Failed to initialize scanner. Please check camera permissions.";
+        console.error("Scanner start error:", err);
       }
     }
 
@@ -300,7 +300,6 @@
           `;
         }
 
-        // Resume after 5 seconds
         setTimeout(() => {
           html5QrcodeScanner.resume();
           resultEl.className = "waiting";
@@ -310,9 +309,9 @@
       } catch (err) {
         document.getElementById("error-sound").play();
         resultEl.className = "error";
-        resultEl.innerHTML = "Network or validation error. Please try again.";
+        resultEl.innerHTML = "Network or server error. Try again.";
         console.error("Validation error:", err);
-        html5QrcodeScanner.resume();
+        setTimeout(() => html5QrcodeScanner.resume(), 3000);
       }
     }
   </script>
